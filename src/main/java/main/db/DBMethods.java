@@ -1,4 +1,4 @@
-package main.db.studentsortdb;
+package main.db;
 
 public class DBMethods {
 

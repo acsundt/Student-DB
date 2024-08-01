@@ -1,15 +1,10 @@
-package main.app.studentsortdb;
+package main.app;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
-import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
-import javafx.event.EventHandler;
 
 import java.io.IOException;
 
