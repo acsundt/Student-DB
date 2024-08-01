@@ -1,4 +1,4 @@
-package main.app.studentsortdb;
+package main.app;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;

@@ -1,4 +1,4 @@
-package main.db.studentsortdb;
+package main.db;
 
 import java.sql.*;
 import javafx.application.Application;
