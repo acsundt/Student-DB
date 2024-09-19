@@ -12,11 +12,7 @@ public class DBConnector {
     public static void main(String[] args) {
 
         try {
-            Connection connection = DriverManager.getConnection(
-                    "jdbc:mysql://127.0.0.3:3306/student_data",
-                    "root",
-                    "siYYx?N3egeYEq@8"
-            );
+            Connection connection = DriverManager.getConnection(System.getenv("URL"),System.getenv("USER"),System.getenv("PASSWORD"));
 
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM students");
