@@ -38,6 +38,10 @@ public class DBMethods {
 
         int studentId = findStudentIdByName(studentName);
 
+        if (studentId == -1) {  // Assuming -1 indicates the student was not found
+            return "Student not found.";
+        }
+
         deleteAssociatedInfo(studentId);
 
         String query = "DELETE FROM students WHERE id = ?;";
@@ -78,9 +82,54 @@ public class DBMethods {
         }
     }
 
-    //public void updateStudentName(String studentName)
+    public void updateStudentName(String newStudentName, int studentId){
 
-    //public void updateStudentData(String studentName, String newDataType, String newData)
+        String query = "UPDATE students SET name = ? WHERE id = ?";
+
+        try(PreparedStatement preparedStatement = connector.prepareStatement(query)){
+            preparedStatement.setString(1,newStudentName);
+            preparedStatement.setInt(2,studentId);
+
+            int rowsAffected = preparedStatement.executeUpdate();
+
+//            if (rowsAffected > 0) {
+//                System.out.println("Student information updated successfully.");
+//            } else {
+//                System.out.println("No student found with the provided ID.");
+//            }
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+
+    }
+
+
+    public <T> void updateStudentData(String studentName, String newDataType, T newData){
+
+        String query = "UPDATE students SET "+newDataType+" = ? WHERE name = ?";
+
+        try(PreparedStatement preparedStatement = connector.prepareStatement(query)){
+            // Set the parameter for newData
+            if (newData instanceof String) {
+                preparedStatement.setString(1, (String) newData);
+            } else if (newData instanceof Integer) {
+                preparedStatement.setInt(1, (Integer) newData);
+            } else {
+                // Handle other types or throw an exception
+                throw new IllegalArgumentException("Unsupported data type: " + newData.getClass());
+            }
+            preparedStatement.setString(2,studentName);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+
+
+    }
+
+
 
     public void addStudent(String[] studentInfo) {
 
@@ -116,20 +165,17 @@ public class DBMethods {
 
     public void createReadingTable(){
         //holds  mcap score, i- ready, dibels
-        try{
-            Statement statement = connector.createStatement();
-            String query = "CREATE TABLE reading_scores (" +
-                    "id INT PRIMARY KEY AUTO_INCREMENT," +
-                    "student_id INT," +        // Student ID to link with students table
-                    "MCAP INT," +
-                    "i_ready INT," +
-                    "dibels INT," +
-                    "FOREIGN KEY (student_id) REFERENCES students(id)"+
-                    ");";
-            statement.executeUpdate(query);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
+
+        String query = "CREATE TABLE IF NOT EXISTS reading_scores (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "student_id INT," +        // Student ID to link with students table
+                "MCAP INT," +
+                "i_ready INT," +
+                "dibels INT," +
+                "FOREIGN KEY (student_id) REFERENCES students(id)"+
+                ");";
+        executeUpdate(query);
+
     }
 
     public void addReadingScore(int studentId, int mcapScore, int iReadyScore, int dibelsScore){
@@ -156,23 +202,20 @@ public class DBMethods {
         //holds mcap score, i-5 ready
         //i-5 ready is only grades 3-5
         //holds  mcap score, i- ready, dibels
-        try{
-            Statement statement = connector.createStatement();
-            String query = "CREATE TABLE math_scores (" +
-                    "id INT PRIMARY KEY AUTO_INCREMENT," +
-                    "student_id INT," +        // Student ID to link with students table
-                    "MCAP INT," +
-                    "i_ready INT," +
-                    "FOREIGN KEY (student_id) REFERENCES students(id)"+
-                    ");";
-            statement.executeUpdate(query);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
+
+        String query = "CREATE TABLE IF NOT EXISTS math_scores (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT," +
+                "student_id INT," +        // Student ID to link with students table
+                "MCAP INT," +
+                "i_ready INT," +
+                "FOREIGN KEY (student_id) REFERENCES students(id)"+
+                ");";
+        executeUpdate(query);
+
     }
 
     public void addMathScore(int studentId, int mcapScore, int iReadyScore){
-        String query = "INSERT INTO reading_scores (student_id, MCAP, i_ready, dibels) VALUES (?, ?, ?, ?);";
+        String query = "INSERT INTO math_scores (student_id, MCAP, i_ready, dibels) VALUES (?, ?, ?, ?);";
 
         try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
             // Set the parameters for the prepared statement
@@ -204,37 +247,31 @@ public class DBMethods {
 
             // Check if a result is returned
             if (resultSet.next()) {
-                studentId = resultSet.getInt("id"); // Get the ID of the found student
-            }
+                return resultSet.getInt("id");            }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return studentId; // Return the found student ID or null if not found
+        return -1; // Return -1 if student is not found
 
     }
 
 
-    public void addStudentTable(String tableTitle) { //to reset the db
-        try {
-            Statement statement = connector.createStatement();
+    public void createStudentTable(String tableTitle) { //to reset the db
 
-            String query = "CREATE TABLE students (" +
-                    "id INT PRIMARY KEY AUTO_INCREMENT," +
-                    "name VARCHAR(100)," +
-                    "age VARCHAR(100)," +
-                    "grade INT," +
-                    "teacher VARCHAR(100)," +
-                    "reading_ID INT," +
-                    "math_ID INT" +
-                    ");";
+        String query = "CREATE TABLE IF NOT EXISTS students (" +
+                "student_id INT PRIMARY KEY AUTO_INCREMENT," +
+                "name VARCHAR(100)," +
+                "age VARCHAR(100)," +
+                "grade INT," +
+                "teacher VARCHAR(100)," +
+                "reading_ID INT," +
+                "math_ID INT" +
+                ");";
 
-            statement.executeUpdate(query);
+        executeUpdate(query);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     public void deleteTable(String tableTitle){
@@ -251,7 +288,13 @@ public class DBMethods {
 
     }
 
-
+    private void executeUpdate(String query) {
+        try (Statement statement = connector.createStatement()) {
+            statement.executeUpdate(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 
 }
