@@ -5,6 +5,12 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
+import main.db.DBConnector;
+import main.db.DBMethods;
+
+import java.sql.Connection;
+
+import static main.db.DBConnector.connector;
 
 
 public class Controller implements EventHandler<ActionEvent> {
@@ -19,6 +25,9 @@ public class Controller implements EventHandler<ActionEvent> {
     @Override
     public void handle(ActionEvent event) {
 
+        DBMethods methodConnect = new DBMethods();
+       // Connection connector = connector();
+
         Object source = event.getSource();
 
         if (source instanceof Button){
@@ -27,6 +36,8 @@ public class Controller implements EventHandler<ActionEvent> {
 
             if (clickedButton.getText().equals("Sup")) {
                 System.out.println("Button!");
+
+                methodConnect.printDataFrom("students");
             }
         }
 
