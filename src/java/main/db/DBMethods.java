@@ -34,7 +34,48 @@ public class DBMethods {
         }
     }
 
-    //public void deleteStudent(String studentName)
+    public String deleteStudent(String studentName){
+
+        int studentId = findStudentIdByName(studentName);
+
+        deleteAssociatedInfo(studentId);
+
+        String query = "DELETE FROM students WHERE id = ?;";
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
+            preparedStatement.setInt(1, studentId);
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected > 0) {
+                return "Student deleted successfully.";
+            } else {
+                return "Student not found.";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void deleteAssociatedInfo(int studentId){
+        String query1 = "DELETE FROM reading_scores WHERE student_id = ?;";
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query1)) {
+            preparedStatement.setInt(1, studentId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String query2 = "DELETE FROM math_scores WHERE student_id = ?;";
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query2)) {
+            preparedStatement.setInt(1, studentId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     //public void updateStudentName(String studentName)
 
