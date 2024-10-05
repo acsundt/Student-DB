@@ -6,6 +6,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.sql.PreparedStatement;
+
+
 
 import static main.db.DBConnector.connector;
 
@@ -43,28 +46,135 @@ public class DBMethods {
         String studentAge = studentInfo[1];
         int studentGrade = Integer.parseInt(studentInfo[2]);
         String studentTeacher = studentInfo[3];
-        int studentReadingLevel = Integer.parseInt(studentInfo[4]);
-        int studentMathLevel = Integer.parseInt(studentInfo[5]);
+        int reading_id = Integer.parseInt(studentInfo[4]);
+        int math_id = Integer.parseInt(studentInfo[5]);
 
         try{
             Statement statement = connector.createStatement();
 
-            String query = "INSER INTO students (" +
-                    studentName +
-                    studentAge +
-                    studentGrade +
-                    studentTeacher +
-                    studentReadingLevel +
-                    studentMathLevel;
+            String query = "INSERT INTO students (name, age, grade, teacher, reading_ID, math_ID) " +
+                    "VALUES (?, ?, ?, ?, ?, ?);";
+
+            // Create a PreparedStatement to avoid SQL injection
+            PreparedStatement preparedStatement = connector.prepareStatement(query);
+            preparedStatement.setString(1, studentName);
+            preparedStatement.setString(2, studentAge);
+            preparedStatement.setInt(3, studentGrade);
+            preparedStatement.setString(4, studentTeacher);
+            preparedStatement.setInt(5, reading_id);
+            preparedStatement.setInt(6, math_id);
+
+            preparedStatement.executeUpdate();
+
         } catch (SQLException e){
             e.printStackTrace();
         }
 
     }
 
+    public void createReadingTable(){
+        //holds  mcap score, i- ready, dibels
+        try{
+            Statement statement = connector.createStatement();
+            String query = "CREATE TABLE reading_scores (" +
+                    "id INT PRIMARY KEY AUTO_INCREMENT," +
+                    "student_id INT," +        // Student ID to link with students table
+                    "MCAP INT," +
+                    "i_ready INT," +
+                    "dibels INT," +
+                    "FOREIGN KEY (student_id) REFERENCES students(id)"+
+                    ");";
+            statement.executeUpdate(query);
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void addReadingScore(int studentId, int mcapScore, int iReadyScore, int dibelsScore){
+        String query = "INSERT INTO reading_scores (student_id, MCAP, i_ready, dibels) VALUES (?, ?, ?, ?);";
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
+            // Set the parameters for the prepared statement
+            preparedStatement.setInt(1, studentId);
+            preparedStatement.setInt(2, mcapScore);
+            preparedStatement.setInt(3, iReadyScore);
+            preparedStatement.setInt(4, dibelsScore);
+
+            // Execute the update
+            preparedStatement.executeUpdate();
+//            System.out.println("Reading score added successfully.");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void addMathTable(){
+        //holds mcap score, i-5 ready
+        //i-5 ready is only grades 3-5
+        //holds  mcap score, i- ready, dibels
+        try{
+            Statement statement = connector.createStatement();
+            String query = "CREATE TABLE math_scores (" +
+                    "id INT PRIMARY KEY AUTO_INCREMENT," +
+                    "student_id INT," +        // Student ID to link with students table
+                    "MCAP INT," +
+                    "i_ready INT," +
+                    "FOREIGN KEY (student_id) REFERENCES students(id)"+
+                    ");";
+            statement.executeUpdate(query);
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void addMathScore(int studentId, int mcapScore, int iReadyScore){
+        String query = "INSERT INTO reading_scores (student_id, MCAP, i_ready, dibels) VALUES (?, ?, ?, ?);";
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
+            // Set the parameters for the prepared statement
+            preparedStatement.setInt(1, studentId);
+            preparedStatement.setInt(2, mcapScore);
+            preparedStatement.setInt(3, iReadyScore);
+
+            // Execute the update
+            preparedStatement.executeUpdate();
+//            System.out.println("Reading score added successfully.");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 
-    public void addTable(String tableTitle) { //to reset the db
+    public int findStudentIdByName(String studentName){
+
+        String query = "SELECT id FROM students WHERE name = ?;"; // SQL query to find the student ID
+        Integer studentId = null; // Initialize studentId as null
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
+            // Set the name parameter
+            preparedStatement.setString(1, studentName);
+
+            // Execute the query
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            // Check if a result is returned
+            if (resultSet.next()) {
+                studentId = resultSet.getInt("id"); // Get the ID of the found student
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return studentId; // Return the found student ID or null if not found
+
+    }
+
+
+    public void addStudentTable(String tableTitle) { //to reset the db
         try {
             Statement statement = connector.createStatement();
 
@@ -74,17 +184,18 @@ public class DBMethods {
                     "age VARCHAR(100)," +
                     "grade INT," +
                     "teacher VARCHAR(100)," +
-                    "reading_level INT," +
-                    "math_level INT";
+                    "reading_ID INT," +
+                    "math_ID INT" +
+                    ");";
 
-            ResultSet resultSet = statement.executeQuery(query);
+            statement.executeUpdate(query);
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void deleteTable(String tableTitle){ //deletes db
+    public void deleteTable(String tableTitle){
 
         try{
             Statement statement = connector.createStatement();
