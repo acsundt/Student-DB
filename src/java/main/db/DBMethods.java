@@ -54,6 +54,7 @@ public class DBMethods {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return "Error Deleting Student";
 
     }
 
