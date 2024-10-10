@@ -265,9 +265,11 @@ public class DBMethods {
                 "name VARCHAR(100)," +
                 "age VARCHAR(100)," +
                 "grade INT," +
-                "teacher VARCHAR(100)," +
-                "reading_ID INT," +
-                "math_ID INT" +
+                "teacher VARCHAR(100)" +
+//                "reading_ID INT," +
+//                "math_ID INT" +
+//                "FOREIGN KEY (reading_ID) REFERENCES reading_scores(id)," +
+//                "FOREIGN KEY (math_ID) REFERENCES math_scores(id),"+
                 ");";
 
         executeUpdate(query);
