@@ -34,12 +34,13 @@ public class Controller implements EventHandler<ActionEvent> {
 
             Button clickedButton = (Button) source;
 
-            if (clickedButton.getText().equals("Sup")) {
-                System.out.println("Button!");
+            if (clickedButton.getText().equals("Go to Reading Scores")) {
+                methodConnect.displayReadingTable();
 
                 methodConnect.printDataFrom("students");
             }
         }
 
     }
+
 }

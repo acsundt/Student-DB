@@ -141,7 +141,7 @@ public class DBMethods {
         int math_id = Integer.parseInt(studentInfo[5]);
 
         try{
-            Statement statement = connector.createStatement();
+            //Statement statement = connector.createStatement();
 
             String query = "INSERT INTO students (name, age, grade, teacher, reading_ID, math_ID) " +
                     "VALUES (?, ?, ?, ?, ?, ?);";
@@ -152,8 +152,8 @@ public class DBMethods {
             preparedStatement.setString(2, studentAge);
             preparedStatement.setInt(3, studentGrade);
             preparedStatement.setString(4, studentTeacher);
-            preparedStatement.setInt(5, reading_id);
-            preparedStatement.setInt(6, math_id);
+           // preparedStatement.setInt(5, reading_id);
+            //preparedStatement.setInt(6, math_id);
 
             preparedStatement.executeUpdate();
 
@@ -297,6 +297,22 @@ public class DBMethods {
             e.printStackTrace();
         }
     }
+
+
+
+//    public int displayStudentTable(){
+//        return 3;
+//    }
+//
+//    public int displayReadingTable(){
+//        return 1;
+//    }
+//
+//    public int displayMathTable(){
+//        return 2;
+//    }
+
+
 
 
 }
