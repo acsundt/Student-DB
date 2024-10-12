@@ -137,14 +137,14 @@ public class DBMethods {
         String studentAge = studentInfo[1];
         int studentGrade = Integer.parseInt(studentInfo[2]);
         String studentTeacher = studentInfo[3];
-        int reading_id = Integer.parseInt(studentInfo[4]);
-        int math_id = Integer.parseInt(studentInfo[5]);
+        //int reading_id = Integer.parseInt(studentInfo[4]);
+        //int math_id = Integer.parseInt(studentInfo[5]);
 
         try{
             //Statement statement = connector.createStatement();
 
-            String query = "INSERT INTO students (name, age, grade, teacher, reading_ID, math_ID) " +
-                    "VALUES (?, ?, ?, ?, ?, ?);";
+            String query = "INSERT INTO students (name, age, grade, teacher) " +
+                    "VALUES (?, ?, ?, ?);";
 
             // Create a PreparedStatement to avoid SQL injection
             PreparedStatement preparedStatement = connector.prepareStatement(query);
@@ -172,7 +172,7 @@ public class DBMethods {
                 "MCAP INT," +
                 "i_ready INT," +
                 "dibels INT," +
-                "FOREIGN KEY (student_id) REFERENCES students(id)"+
+                "FOREIGN KEY (student_id) REFERENCES students(student_id)"+
                 ");";
         executeUpdate(query);
 
@@ -198,7 +198,7 @@ public class DBMethods {
 
     }
 
-    public void addMathTable(){
+    public void createMathTable(){
         //holds mcap score, i-5 ready
         //i-5 ready is only grades 3-5
         //holds  mcap score, i- ready, dibels
@@ -208,20 +208,20 @@ public class DBMethods {
                 "student_id INT," +        // Student ID to link with students table
                 "MCAP INT," +
                 "i_ready INT," +
-                "FOREIGN KEY (student_id) REFERENCES students(id)"+
+                "FOREIGN KEY (student_id) REFERENCES students(student_id)"+
                 ");";
         executeUpdate(query);
 
     }
 
     public void addMathScore(int studentId, int mcapScore, int iReadyScore){
-        String query = "INSERT INTO math_scores (student_id, MCAP, i_ready, dibels) VALUES (?, ?, ?, ?);";
+        String query = "INSERT INTO math_scores (student_id, MCAP, i_ready) VALUES (?, ?, ?);";
 
         try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
             // Set the parameters for the prepared statement
             preparedStatement.setInt(1, studentId);
             preparedStatement.setInt(2, mcapScore);
-            preparedStatement.setInt(3, iReadyScore);
+            preparedStatement.setInt(3,iReadyScore);
 
             // Execute the update
             preparedStatement.executeUpdate();
@@ -235,7 +235,7 @@ public class DBMethods {
 
     public int findStudentIdByName(String studentName){
 
-        String query = "SELECT id FROM students WHERE name = ?;"; // SQL query to find the student ID
+        String query = "SELECT student_id FROM students WHERE name = ?;"; // SQL query to find the student ID
         Integer studentId = null; // Initialize studentId as null
 
         try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
@@ -247,18 +247,143 @@ public class DBMethods {
 
             // Check if a result is returned
             if (resultSet.next()) {
-                return resultSet.getInt("id");            }
+                return resultSet.getInt("student_id");            }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        System.out.println("Student not found");
         return -1; // Return -1 if student is not found
 
     }
 
+    public String[][] getAllStudentsInfo() {
+        // First, count the total number of students
+        String countQuery = "SELECT COUNT(*) AS total FROM students;";
+        int studentCount = 0;
 
-    public void createStudentTable(String tableTitle) { //to reset the db
+        try (PreparedStatement countStatement = connector.prepareStatement(countQuery)) {
+            ResultSet countResultSet = countStatement.executeQuery();
+            if (countResultSet.next()) {
+                studentCount = countResultSet.getInt("total");  // Get the number of students
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Create a 2D array with the size: number of students x number of details (4)
+        String[][] studentsInfo = new String[studentCount][4]; // 4 fields: name, age, grade, teacher
+
+        // Now, retrieve all the student information
+        String query = "SELECT name, age, grade, teacher FROM students;";
+        int index = 0;  // For filling the array
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            // Loop through each student and populate the 2D array
+            while (resultSet.next()) {
+                studentsInfo[index][0] = resultSet.getString("name");    // Name
+                studentsInfo[index][1] = resultSet.getString("age");     // Age
+                studentsInfo[index][2] = String.valueOf(resultSet.getInt("grade"));  // Grade
+                studentsInfo[index][3] = resultSet.getString("teacher");  // Teacher
+
+                index++;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return studentsInfo;  // Return the 2D array of students' info
+    }
+
+
+    public int[][] getAllReadingData() {
+        // First, count the total number of students
+        String countQuery = "SELECT COUNT(*) AS total FROM reading_scores;";
+        int readingCount = 0;
+
+        try (PreparedStatement countStatement = connector.prepareStatement(countQuery)) {
+            ResultSet countResultSet = countStatement.executeQuery();
+            if (countResultSet.next()) {
+                readingCount = countResultSet.getInt("total");  // Get the number of scores
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Create a 2D array with the size: number of students x number of details (4)
+        int[][] readingInfo = new int[readingCount][4]; // 4 fields: student id, mcap, i ready, dibels
+
+        // Now, retrieve all the student information
+        String query = "SELECT student_id, MCAP, i_ready, dibels FROM reading_scores;";
+        int index = 0;  // For filling the array
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            // Loop through each student and populate the 2D array
+            while (resultSet.next()) {
+                readingInfo[index][0] = resultSet.getInt("student_id");
+                readingInfo[index][1] = resultSet.getInt("MCAP");
+                readingInfo[index][2] = resultSet.getInt("i_ready");
+                readingInfo[index][3] = resultSet.getInt("dibels");
+
+                index++;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return readingInfo;  // Return the 2D array of students' info
+    }
+
+
+
+    public int[][] getAllMathData() {
+        // First, count the total number of students
+        String countQuery = "SELECT COUNT(*) AS total FROM math_scores;";
+        int mathCount = 0;
+
+        try (PreparedStatement countStatement = connector.prepareStatement(countQuery)) {
+            ResultSet countResultSet = countStatement.executeQuery();
+            if (countResultSet.next()) {
+                mathCount = countResultSet.getInt("total");  // Get the number of scores
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Create a 2D array with the size: number of students x number of details (4)
+        int[][] mathInfo = new int[mathCount][3]; // three fields, student id, mcap, i-ready
+
+        // Now, retrieve all the student information
+        String query = "SELECT student_id, MCAP, i_ready FROM math_scores;";
+        int index = 0;  // For filling the array
+
+        try (PreparedStatement preparedStatement = connector.prepareStatement(query)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            // Loop through each student and populate the 2D array
+            while (resultSet.next()) {
+                mathInfo[index][0] = resultSet.getInt("student_id");
+                mathInfo[index][1] = resultSet.getInt("MCAP");
+                mathInfo[index][2] = resultSet.getInt("i_ready");
+
+                index++;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return mathInfo;  // Return the 2D array of students' info
+    }
+
+
+
+
+
+    public void createStudentTable() { //to reset the db
 
         String query = "CREATE TABLE IF NOT EXISTS students (" +
                 "student_id INT PRIMARY KEY AUTO_INCREMENT," +
@@ -283,7 +408,7 @@ public class DBMethods {
 
             String query = "DROP TABLE "+ tableTitle;
 
-            ResultSet resultSet = statement.executeQuery(query);
+            statement.executeUpdate(query);
         } catch (SQLException e){
             e.printStackTrace();
         }
@@ -299,18 +424,6 @@ public class DBMethods {
     }
 
 
-
-//    public int displayStudentTable(){
-//        return 3;
-//    }
-//
-//    public int displayReadingTable(){
-//        return 1;
-//    }
-//
-//    public int displayMathTable(){
-//        return 2;
-//    }
 
 
 
